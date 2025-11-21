@@ -3,309 +3,179 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Globe Portfolio — Jagathrajah</title>
+  <title>Jagathrajah — Research Analyst Portfolio</title>
 
-  <!-- External CSS libraries (pulled by URL as requested) -->
+  <!-- External fonts & small utility CSS via URL -->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/modern-css-reset/dist/reset.min.css">
+
+  <!-- Simple icon library (CDN) -->
+  <script defer src="https://unpkg.com/feather-icons"></script>
+
+  <!-- THREE.js and Globe.gl (pulled from CDN) -->
+  <script defer src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+  <script defer src="https://unpkg.com/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
+  <script defer src="https://unpkg.com/globe.gl"></script>
+
+  <!-- GSAP for smooth intro animations (CDN) -->
+  <script defer src="https://unpkg.com/gsap@3.12.2/dist/gsap.min.js"></script>
 
   <style>
     :root{
-      --bg:#061021;
-      --glass: rgba(255,255,255,0.06);
-      --accent: #00e0ff;
-      --muted: rgba(255,255,255,0.7);
+      --bg:#071026;
+      --card:#07182a;
+      --muted:#9fb0c8;
+      --accent:#6ee7b7;
       font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
     }
-    html,body{height:100%;}
-    body{
-      background: radial-gradient(1200px 800px at 10% 10%, rgba(0,224,255,0.04), transparent),
-                  linear-gradient(180deg,#001022 0%, var(--bg) 100%);
-      color: white;
-      overflow:hidden;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#020617 0%, #071026 60%);color:#e6f0fb}
+
+    /* page layout */
+    .wrap{display:flex;gap:24px;min-height:100vh;padding:24px;box-sizing:border-box;align-items:center;justify-content:center}
+
+    /* globe container */
+    #globeViz{flex:1;min-height:60vh;height:80vh;border-radius:18px;overflow:hidden;box-shadow:0 10px 40px rgba(2,8,23,0.6);}
+
+    /* right panel */
+    .panel{width:420px;max-width:92vw;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);padding:28px;border-radius:16px;backdrop-filter: blur(6px)}
+
+    .name{font-weight:800;font-size:22px;letter-spacing:0.2px;margin:0 0 6px}
+    .role{color:var(--muted);margin:0 0 18px}
+
+    .bio{color:var(--muted);line-height:1.5;margin-bottom:18px;font-size:14px}
+
+    .skills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+    .skill{background:rgba(255,255,255,0.03);padding:8px 10px;border-radius:999px;font-size:13px;border:1px solid rgba(255,255,255,0.02)}
+
+    .stats{display:flex;gap:12px;margin-bottom:18px}
+    .stat{flex:1;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:12px;border-radius:10px;text-align:center}
+    .stat strong{display:block;font-size:18px}
+    .stat span{font-size:12px;color:var(--muted)}
+
+    .actions{display:flex;gap:12px}
+    .btn{flex:1;padding:12px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
+    .btn-primary{background:linear-gradient(90deg,#2dd4bf,#06b6d4);color:#04111a}
+    .btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--accent)}
+
+    /* responsive */
+    @media (max-width:900px){
+      .wrap{flex-direction:column-reverse;padding:18px}
+      #globeViz{height:56vh;width:100%}
+      .panel{width:100%}
     }
 
-    #globe-wrap{position:fixed; inset:0; z-index:0; width:100%; height:100%;}
-    canvas{display:block; width:100%; height:100%;}
+    /* small helper */
+    .muted{color:var(--muted);font-size:13px}
 
-    header{position:fixed; top:20px; left:20px; right:20px; z-index:5; display:flex; align-items:center; justify-content:space-between; gap:12px;}
-    .brand{display:flex; align-items:center; gap:12px}
-    .logo{width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#7b61ff); box-shadow:0 6px 18px rgba(11,22,33,0.6); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px; color:#021019;}
-    nav a{margin-left:18px; color:var(--muted); text-decoration:none; font-weight:600; font-size:14px}
-    nav a:hover{color:var(--accent)}
-
-    .hero{position:relative; z-index:4; max-width:1100px; margin:0 auto; top:14vh; padding:28px; border-radius:16px; backdrop-filter: blur(6px); background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); box-shadow: 0 10px 40px rgba(2,7,23,0.6); display:flex; gap:20px; align-items:center; margin-left:6vw; margin-right:6vw;}
-    .intro{flex:1}
-    h1{font-size:clamp(28px,4.5vw,54px); margin:0; line-height:1.02}
-    .role{color:var(--accent); font-weight:700; margin-top:6px}
-    p.lead{color:var(--muted); margin-top:12px; font-size:clamp(14px,1.6vw,18px)}
-
-    .cta{display:flex; gap:12px; margin-top:18px}
-    .btn{padding:10px 16px; border-radius:10px; text-decoration:none; font-weight:700; font-size:14px; display:inline-flex; align-items:center; gap:8px}
-    .btn-primary{background:linear-gradient(90deg,var(--accent),#7b61ff); color:#021019}
-    .btn-ghost{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--muted)}
-
-    .card{min-width:300px; max-width:420px; padding:18px; border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03)}
-    .skills{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
-    .chip{padding:6px 10px; border-radius:999px; background:var(--glass); font-weight:600; font-size:13px}
-
-    footer{position:fixed; bottom:14px; left:20px; right:20px; z-index:5; display:flex; justify-content:space-between; color:var(--muted); font-size:13px}
-
-    @media (max-width:900px){header{top:12px; left:12px; right:12px} .hero{flex-direction:column; align-items:flex-start; padding:18px} .card{width:100%} footer{flex-direction:column; gap:8px; align-items:flex-start}}
-
-    a:focus{outline:2px dashed var(--accent); outline-offset:3px}
-
-    /* small on-screen error box for helpful debugging */
-    #errorBox{position:fixed; left:12px; bottom:80px; z-index:10; background:rgba(0,0,0,0.6); color:#ffdede; padding:10px 12px; border-radius:8px; font-size:13px; display:none; max-width:calc(100% - 40px);}
+    /* animated intro */
+    .fade-in{opacity:0;transform:translateY(10px)}
   </style>
 </head>
 <body>
 
-  <div id="globe-wrap"></div>
+  <div class="wrap">
+    <!-- Globe area -->
+    <div id="globeViz" aria-hidden="true"></div>
 
-  <header>
-    <div class="brand">
-      <div class="logo">JR</div>
-      <div>
-        <div style="font-weight:800">Jagathrajah</div>
-        <div style="font-size:12px;color:var(--muted)">Web3 · Security · Dev</div>
-      </div>
-    </div>
+    <!-- Info panel -->
+    <aside class="panel fade-in" id="infoPanel">
+      <h1 class="name">Jagathrajah</h1>
+      <div class="role">Research Analyst — Threat Modelling • Threat Intelligence • Malware Analysis</div>
 
-    <nav>
-      <a href="#about">About</a>
-      <a href="#projects">Projects</a>
-      <a href="#contact">Contact</a>
-    </nav>
-  </header>
+      <p class="bio">M.Tech in Information Security & Cyber Forensics. Published two IEEE papers on blockchain-based DNS and malware classification. I focus on practical research, attack simulation and robust defensive design.</p>
 
-  <main class="hero" role="main">
-    <section class="intro">
-      <h1>Hi — I'm <span style="color:var(--accent)">Jagathrajah</span>.<br><span class="role">I build secure Web3 systems & tools.</span></h1>
-      <p class="lead">Interactive portfolio with a live rotating 3D globe in the background. Click and drag to orbit, scroll to zoom. The entire layout is responsive for mobile and desktop.</p>
-
-      <div class="cta">
-        <a class="btn btn-primary" href="#projects">View Projects →</a>
-        <a class="btn btn-ghost" href="#contact">Get in touch</a>
-      </div>
-
-      <div style="margin-top:16px; color:var(--muted); font-size:13px">Pro tip: drag the globe with your mouse or two-finger swipe on touch devices.</div>
-    </section>
-
-    <aside class="card">
-      <div style="font-weight:800; font-size:18px">Quick Skills</div>
       <div class="skills">
-        <div class="chip">Threat Modelling</div>
-        <div class="chip">Threat Intelligence</div>
-        <div class="chip">Malware Analysis</div>
-        <div class="chip">Web3 DNS</div>
-        <div class="chip">Forensics</div>
+        <div class="skill">Threat Modelling</div>
+        <div class="skill">Threat Intelligence</div>
+        <div class="skill">Malware Analysis</div>
+        <div class="skill">Blockchain DNS</div>
+        <div class="skill">Attack Simulation</div>
       </div>
 
-      <div style="margin-top:14px; font-size:13px; color:var(--muted)">
-        Research Analyst — M.Tech in Information Security & Cyber Forensics. Two IEEE publications in Web3 DNS and Malware Classification.
+      <div class="stats">
+        <div class="stat">
+          <strong>2</strong>
+          <span>IEEE Publications</span>
+        </div>
+        <div class="stat">
+          <strong>M.Tech</strong>
+          <span>Information Security</span>
+        </div>
       </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="downloadBtn">Download CV</button>
+        <button class="btn btn-outline" id="contactBtn">Contact</button>
+      </div>
+
+      <p class="muted" style="margin-top:14px">Tip: drag to rotate or use two fingers on touch devices. The globe auto-rotates.</p>
     </aside>
-  </main>
+  </div>
 
-  <section id="about" style="position:relative; z-index:4; margin:80px 6vw; padding:28px; border-radius:16px; backdrop-filter:blur(6px); background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); box-shadow:0 10px 40px rgba(2,7,23,0.6); color:white;">
-    <h2 style="font-size:clamp(24px,3vw,36px); font-weight:800; margin:0 0 12px 0;">About Me</h2>
-    <p style="font-size:clamp(14px,1.6vw,18px); color:var(--muted); line-height:1.6;">
-      I am <strong style="color:var(--accent)">Jagathrajah</strong>, a Research Analyst specializing in Threat Modelling, Threat Intelligence, and Malware Analysis.
-      I have completed my <strong>M.Tech in Information Security and Cyber Forensics</strong> and have authored
-      <strong>two IEEE publications</strong> in the domains of Web3 security and Malware Classification.
-    </p>
-    <p style="font-size:clamp(14px,1.6vw,18px); color:var(--muted); margin-top:12px; line-height:1.6;">
-      My interests revolve around advanced cybersecurity research, distributed systems, Web3 DNS security, and real-world cyber-attack prevention.
-    </p>
-  </section>
-
-  <footer>
-    <div>© <span id="year"></span> Jagathrajah</div>
-    <div>Built with three.js • Responsive • Accessible</div>
-  </footer>
-
-  <div id="errorBox" role="status" aria-live="polite"></div>
-
-  <!-- Load GSAP (non-module) so it is available on window.gsap -->
-  <script src="https://unpkg.com/gsap@3.12.2/dist/gsap.min.js"></script>
-
-  <!-- Primary: use ES module dynamic imports. Fallback: load UMD three + non-module OrbitControls if module import fails. -->
-  <script type="module">
-    (async () => {
-      document.getElementById('year').textContent = new Date().getFullYear();
-
-      const showError = (msg) => {
-        const box = document.getElementById('errorBox');
-        box.style.display = 'block';
-        box.textContent = msg;
-        console.error(msg);
-      };
-
-      // Helper init function used by both module and non-module paths
-      function runScene(THREE, OrbitControls) {
-        try {
-          const container = document.getElementById('globe-wrap');
-          const scene = new THREE.Scene();
-          const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-          renderer.setPixelRatio(window.devicePixelRatio);
-          renderer.setSize(container.clientWidth, container.clientHeight);
-          renderer.outputEncoding = THREE.sRGBEncoding || THREE.LinearEncoding;
-          container.appendChild(renderer.domElement);
-
-          const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 2000);
-          camera.position.set(0, 0, 4.5);
-
-          const hemi = new THREE.HemisphereLight(0xffffff, 0x080820, 0.8);
-          scene.add(hemi);
-          const dir = new THREE.DirectionalLight(0xffffff, 0.6);
-          dir.position.set(5, 3, 5);
-          scene.add(dir);
-
-          const loader = new THREE.TextureLoader();
-          const earthTextureURL = 'https://threejs.org/examples/textures/earth_atmos_2048.jpg';
-          const earthBumpURL = 'https://threejs.org/examples/textures/earth_bump_1024.jpg';
-
-          const sphereGroup = new THREE.Group();
-          scene.add(sphereGroup);
-
-          loader.load(earthTextureURL, (map) => {
-            loader.load(earthBumpURL, (bump) => {
-              const geometry = new THREE.SphereGeometry(1.45, 64, 64);
-              const material = new THREE.MeshStandardMaterial({ map: map, bumpMap: bump, bumpScale: 0.02, metalness: 0.05, roughness: 0.9 });
-              const earth = new THREE.Mesh(geometry, material);
-              sphereGroup.add(earth);
-
-              const atmosphereMat = new THREE.MeshBasicMaterial({ color: 0x93d7ff, side: THREE.BackSide, transparent: true, opacity: 0.08 });
-              const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(1.47, 64, 64), atmosphereMat);
-              sphereGroup.add(atmosphere);
-
-              const starsGeometry = new THREE.BufferGeometry();
-              const starCount = 2000;
-              const positions = new Float32Array(starCount * 3);
-              for (let i = 0; i < starCount * 3; i++) positions[i] = (Math.random() - 0.5) * 200;
-              starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-              const starsMaterial = new THREE.PointsMaterial({ size: 0.6, sizeAttenuation: true });
-              const starField = new THREE.Points(starsGeometry, starsMaterial);
-              scene.add(starField);
-
-              animate();
-            }, undefined, (err) => showError('Failed to load bump texture: ' + err));
-          }, undefined, (err) => showError('Failed to load earth texture: ' + err));
-
-          // Controls
-          const controls = new OrbitControls(camera, renderer.domElement);
-          controls.enableDamping = true;
-          controls.dampingFactor = 0.08;
-          controls.enablePan = false;
-          controls.minDistance = 2.6;
-          controls.maxDistance = 8;
-          controls.rotateSpeed = 0.4;
-
-          // Responsive
-          function onWindowResize(){
-            const w = container.clientWidth, h = container.clientHeight;
-            camera.aspect = w/h; camera.updateProjectionMatrix();
-            renderer.setSize(w,h);
-          }
-          window.addEventListener('resize', onWindowResize, {passive:true});
-
-          const clock = new THREE.Clock();
-          function animate(){
-            requestAnimationFrame(animate);
-            const t = clock.getElapsedTime();
-            sphereGroup.rotation.y += 0.0025;
-            sphereGroup.rotation.x = Math.sin(t * 0.12) * 0.02;
-            controls.update();
-            renderer.render(scene, camera);
-          }
-
-          // Parallax
-          document.addEventListener('pointermove', (e) => {
-            const x = (e.clientX / window.innerWidth) * 2 - 1;
-            const y = (e.clientY / window.innerHeight) * 2 - 1;
-            if (window.gsap) window.gsap.to(sphereGroup.rotation, { x: y * 0.05, y: x * 0.15, duration: 1.6, ease: 'power2.out' });
-          }, {passive:true});
-
-          // UI entrance
-          if (window.gsap) {
-            window.gsap.from('.hero', { y:40, opacity:0, duration:1.2, delay:0.2, ease:'power3.out'});
-            window.gsap.from('header', { y:-20, opacity:0, duration:1, delay:0.05 });
-          }
-
-          function setContainerHeight(){
-            container.style.height = window.innerHeight + 'px';
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            camera.updateProjectionMatrix();
-          }
-          setContainerHeight();
-          window.addEventListener('resize', setContainerHeight, {passive:true});
-
-          // Keyboard rotate
-          window.addEventListener('keydown', (ev) => {
-            const step = 0.08;
-            if(ev.key === 'ArrowLeft') {
-              if (window.gsap) window.gsap.to(sphereGroup.rotation, { y: sphereGroup.rotation.y - step, duration:0.6});
-              else sphereGroup.rotation.y -= step;
-            }
-            if(ev.key === 'ArrowRight') {
-              if (window.gsap) window.gsap.to(sphereGroup.rotation, { y: sphereGroup.rotation.y + step, duration:0.6});
-              else sphereGroup.rotation.y += step;
-            }
-          });
-
-        } catch (err) {
-          showError('Runtime error in runScene(): ' + err);
-        }
+  <script>
+    // wait until external libs load
+    (function waitForLibs(){
+      if(!window.Globe || !window.THREE){
+        return setTimeout(waitForLibs,100);
       }
 
-      // Try module imports first (recommended). This requires the page to be served over HTTP(s).
-      try {
-        const modThree = await import('https://unpkg.com/three@0.158.0/build/three.module.js');
-        const modControls = await import('https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js');
-        // modThree contains named exports; many examples export default as the module namespace
-        const THREE = modThree;
-        const OrbitControls = modControls.OrbitControls || modControls.default?.OrbitControls || modControls.default;
-        if (!OrbitControls) throw new Error('OrbitControls not found in module import');
-        runScene(THREE, OrbitControls);
-      } catch (moduleErr) {
-        console.warn('Module import failed — falling back to non-module UMD build. Error:', moduleErr);
-        showError('Module import failed. Attempting fallback. If you opened this file using file://, serve it with a local HTTP server (e.g., `npx http-server .`).');
+      // set up globe
+      const myGlobe = Globe()(document.getElementById('globeViz'))
+        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+        .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+        .backgroundColor('rgba(0,0,0,0)')
+        .showAtmosphere(true)
+        .atmosphereColor('#0ea5a1')
+        .atmosphereAltitude(0.25)
+        .pointOfView({lat:20,lng:80,alt:2.5})
+        .autoRotate(true)
+        .autoRotateSpeed(0.3)
+        .width(window.innerWidth)
+        .height(window.innerHeight * 0.8)
+        .onGlobeReady(() => {
+          // add a few example arcs / points that animate
+          const arcsData = [
+            {startLat:12.9716, startLng:77.5946, endLat:37.7749, endLng:-122.4194}, // Bangalore -> SF
+            {startLat:28.7041, startLng:77.1025, endLat:51.5074, endLng:-0.1278} // Delhi -> London
+          ];
 
-        // Fallback: load UMD builds (non-module) and then init using window.THREE and window.THREE.OrbitControls
-        function loadScript(src){
-          return new Promise((resolve, reject) => {
-            const s = document.createElement('script');
-            s.src = src;
-            s.onload = () => resolve();
-            s.onerror = (e) => reject(e);
-            document.head.appendChild(s);
-          });
-        }
+          myGlobe
+            .arcsData(arcsData)
+            .arcLabel('Arc')
+            .arcStartLat('startLat').arcStartLng('startLng')
+            .arcEndLat('endLat').arcEndLng('endLng')
+            .arcColor(() => '#06b6d4')
+            .arcAltitudeAutoScale(1.5)
+            .arcDashLength(0.6)
+            .arcDashGap(0.3)
+            .arcDashInitialGap(() => Math.random())
+            .arcStroke(0.8);
+        });
 
-        try {
-          // Load UMD three.js
-          await loadScript('https://unpkg.com/three@0.158.0/build/three.min.js');
-          // Load the non-module OrbitControls which attaches to the global THREE
-          await loadScript('https://unpkg.com/three@0.158.0/examples/js/controls/OrbitControls.js');
+      // resize handling
+      window.addEventListener('resize', () => {
+        myGlobe.width([document.getElementById('globeViz').clientWidth]);
+      });
 
-          if (window.THREE && (window.THREE.OrbitControls || window.OrbitControls)) {
-            const OrbitControls = window.THREE.OrbitControls || window.OrbitControls;
-            runScene(window.THREE, OrbitControls);
-            // hide the error box after successful fallback
-            document.getElementById('errorBox').style.display = 'none';
-          } else {
-            showError('Fallback failed: OrbitControls not available on window.THREE');
-          }
-        } catch (fallbackErr) {
-          showError('Fallback loading scripts failed: ' + fallbackErr);
-        }
-      }
+      // small UI interactions
+      document.getElementById('downloadBtn').addEventListener('click', () => {
+        // fake download — replace with real CV URL
+        const link = document.createElement('a');
+        link.href = 'data:application/pdf;base64,'; // placeholder
+        link.download = 'Jagathrajah_CV.pdf';
+        link.click();
+      });
 
+      document.getElementById('contactBtn').addEventListener('click', () => {
+        window.location.href = 'mailto:your-email@example.com?subject=Contact%20from%20Portfolio';
+      });
+
+      // small animation for the panel
+      gsap.to('#infoPanel', {duration:0.9, y:0, opacity:1, ease:'power3.out', delay:0.3});
+
+      // make icons work
+      if(window.feather) feather.replace();
     })();
   </script>
-
 </body>
 </html>
