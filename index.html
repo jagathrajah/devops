@@ -1,146 +1,111 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Jagathrajah — Rotating Globe Portfolio (Fixed)</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portfolio - Rotating Globe</title>
 
-  <!-- Fonts & libraries via CDN -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-  <script defer src="https://unpkg.com/feather-icons"></script>
-  <script defer src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
-  <script defer src="https://unpkg.com/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
-  <script defer src="https://unpkg.com/globe.gl"></script>
-  <script defer src="https://unpkg.com/gsap@3.12.2/dist/gsap.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            display: flex;
+        }
 
-  <style>
-    :root{--bg:#041025;--muted:#9fb0c8;--accent:#6ee7b7;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial}
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,#020617,#071026);color:#e6f0fb}
+        #globe-container {
+            width: 60vw;
+            height: 100vh;
+        }
 
-    /* layout */
-    .container{display:grid;grid-template-columns:1fr 420px;gap:24px;align-items:center;padding:28px;min-height:100vh}
+        #info-panel {
+            width: 40vw;
+            height: 100vh;
+            background: #111;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            animation: fadeIn 0.8s ease-in-out;
+        }
 
-    /* responsive fallback: stack columns */
-    @media (max-width:980px){.container{grid-template-columns:1fr;padding:18px}}
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
 
-    /* globe area */
-    #globeWrap{background:linear-gradient(180deg,rgba(255,255,255,0.01),rgba(255,255,255,0.00));padding:22px;border-radius:16px;box-shadow:0 10px 40px rgba(2,8,23,0.6);display:flex;align-items:center;justify-content:center}
-    #globeViz{width:100%;height:72vh;max-height:820px;border-radius:12px;overflow:hidden}
+        h1 { margin-bottom: 10px; }
+        p { line-height: 1.5; margin-bottom: 20px; }
 
-    /* panel */
-    .panel{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:26px;border-radius:14px;border:1px solid rgba(255,255,255,0.03)}
-    .name{font-size:22px;font-weight:800;margin:0}
-    .role{color:var(--muted);margin:6px 0 16px}
-    .bio{color:var(--muted);line-height:1.5;margin-bottom:16px;font-size:14px}
-    .skills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-    .skill{padding:8px 10px;border-radius:999px;background:rgba(255,255,255,0.02);font-size:13px;border:1px solid rgba(255,255,255,0.02)}
-    .actions{display:flex;gap:10px}
-    .btn{flex:1;padding:11px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
-    .btn-primary{background:linear-gradient(90deg,#2dd4bf,#06b6d4);color:#04111a}
-    .btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--accent)}
-
-    /* small text */
-    .muted{color:var(--muted);font-size:13px;margin-top:12px}
-  </style>
+        .btn {
+            padding: 10px 20px;
+            margin-right: 10px;
+            background: #0af;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
+
 <body>
-  <div class="container">
-    <!-- left: globe -->
-    <div id="globeWrap">
-      <div id="globeViz" aria-hidden="true"></div>
+    <div id="globe-container"></div>
+
+    <div id="info-panel">
+        <h1>Jagathrajah</h1>
+        <p>Cybersecurity Engineer | SOC Analyst | DevSecOps Practitioner</p>
+        <button class="btn">Download CV</button>
+        <button class="btn">Contact</button>
     </div>
 
-    <!-- right: panel -->
-    <aside class="panel" id="infoPanel">
-      <h1 class="name">Jagathrajah</h1>
-      <div class="role">Research Analyst — Threat Modelling · Threat Intelligence · Malware Analysis</div>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-      <p class="bio">M.Tech in Information Security & Cyber Forensics. Published two IEEE papers (blockchain DNS & malware classification). Focused on practical research, attack simulation and robust defensive design.</p>
+    <script>
+        const container = document.getElementById("globe-container");
 
-      <div class="skills">
-        <div class="skill">Threat Modelling</div>
-        <div class="skill">Threat Intelligence</div>
-        <div class="skill">Malware Analysis</div>
-        <div class="skill">Attack Simulation</div>
-        <div class="skill">Blockchain DNS</div>
-      </div>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
 
-      <div class="actions">
-        <button class="btn btn-primary" id="downloadBtn">Download CV</button>
-        <button class="btn btn-outline" id="contactBtn">Contact</button>
-      </div>
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
 
-      <div class="muted">Tip: drag to rotate. On touch devices use two fingers. Globe auto-rotates.</div>
-    </aside>
-  </div>
+        // 🌍 ALWAYS WORKING TEXTURE (from Three.js CDN)
+        const textureURL = "https://threejs.org/examples/textures/earth_atmos_2048.jpg";
 
-  <script>
-    // NOTE: using the uploaded image path as requested. When deployed, the platform will convert this to a public URL.
-    const uploadedTexturePath = '/mnt/data/bae77b2a-be0b-486f-a98b-28966e751af2.png';
+        const textureLoader = new THREE.TextureLoader();
+        const texture = textureLoader.load(textureURL);
 
-    (function waitForLibs(){
-      if(!window.Globe || !window.THREE || !window.gsap) return setTimeout(waitForLibs,100);
+        const geometry = new THREE.SphereGeometry(2, 64, 64);
+        const material = new THREE.MeshStandardMaterial({ map: texture });
+        const globe = new THREE.Mesh(geometry, material);
+        scene.add(globe);
 
-      // get container sizes
-      const globeEl = document.getElementById('globeViz');
-      function computeHeight(){
-        // give globe a height responsive to viewport
-        const h = Math.min(window.innerHeight * 0.78, 820);
-        globeEl.style.height = h + 'px';
-      }
-      computeHeight();
-      window.addEventListener('resize', computeHeight);
+        const light = new THREE.PointLight(0xffffff, 1);
+        light.position.set(5, 3, 5);
+        scene.add(light);
 
-      // create globe
-      const myGlobe = Globe()(globeEl)
-        // try uploaded texture first; fallback to CDN texture if unavailable
-        .globeImageUrl(uploadedTexturePath)
-        .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-        .backgroundColor('rgba(0,0,0,0)')
-        .showAtmosphere(true)
-        .atmosphereColor('#0ea5a1')
-        .atmosphereAltitude(0.18)
-        .autoRotate(true)
-        .autoRotateSpeed(0.25)
-        .pointOfView({lat:20,lng:80,alt:2.5})
-        .onGlobeReady(() => {
-          // add sample arcs
-          const arcs = [
-            {startLat:12.9716,startLng:77.5946,endLat:37.7749,endLng:-122.4194},
-            {startLat:28.7041,startLng:77.1025,endLat:51.5074,endLng:-0.1278}
-          ];
-          myGlobe
-            .arcsData(arcs)
-            .arcColor(() => '#06b6d4')
-            .arcAltitudeAutoScale(1.5)
-            .arcStroke(0.8)
-            .arcDashLength(0.6)
-            .arcDashGap(0.3)
-            .arcDashInitialGap(() => Math.random());
+        camera.position.z = 5;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            globe.rotation.y += 0.005;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // 🛠 FIXED RESIZE BUG
+        window.addEventListener("resize", () => {
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
         });
+    </script>
 
-      // fallback: if uploaded texture 404s, switch to CDN texture
-      const img = new Image();
-      img.onerror = () => myGlobe.globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg');
-      img.src = uploadedTexturePath;
-
-      // UI interactions
-      document.getElementById('downloadBtn').addEventListener('click', () => {
-        const link = document.createElement('a');
-        link.href = 'data:application/pdf;base64,'; // replace with your CV URL
-        link.download = 'Jagathrajah_CV.pdf';
-        link.click();
-      });
-      document.getElementById('contactBtn').addEventListener('click', () => {
-        window.location.href = 'mailto:your-email@example.com?subject=Portfolio%20Contact';
-      });
-
-      // animate panel in
-      gsap.from('#infoPanel',{duration:0.9,y:18,opacity:0,ease:'power3.out',delay:0.25});
-
-      if(window.feather) feather.replace();
-    })();
-  </script>
 </body>
 </html>
