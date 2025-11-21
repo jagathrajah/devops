@@ -1,177 +1,298 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Un1v3rs@LK1ng — Research Analyst</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Globe Portfolio — Jagathrajah</title>
 
-    <style>
-        body {
-            margin: 0;
-            font-family: "Segoe UI", Roboto, Arial, sans-serif;
-            background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
-            color: #f2f2f2;
-        }
+  <!-- External CSS libraries (pulled by URL as requested) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <!-- Minimal reset + utility from CDN (optional) -->
+  <link rel="stylesheet" href="https://unpkg.com/modern-css-reset/dist/reset.min.css">
 
-        /* Hero Section */
-        .hero {
-            padding: 80px 20px;
-            text-align: center;
-            background: linear-gradient(135deg, #007cf0, #00dfd8);
-            color: white;
-        }
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
-        .hero p {
-            font-size: 1.2rem;
-        }
+  <style>
+    /* Core inline styles -> responsive, full-screen canvas and overlay UI */
+    :root{
+      --bg:#061021;
+      --glass: rgba(255,255,255,0.06);
+      --accent: #00e0ff;
+      --muted: rgba(255,255,255,0.7);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    html,body{height:100%;}
+    body{
+      background: radial-gradient(1200px 800px at 10% 10%, rgba(0,224,255,0.04), transparent),
+                  linear-gradient(180deg,#001022 0%, var(--bg) 100%);
+      color: white;
+      overflow:hidden;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
 
-        /* Content Container */
-        .container {
-            max-width: 900px;
-            margin: 50px auto;
-            padding: 20px;
-        }
+    /* Fullscreen canvas for Three.js globe */
+    #globe-wrap{
+      position:fixed; inset:0; z-index:0; width:100%; height:100%;
+    }
+    canvas{display:block; width:100%; height:100%;}
 
-        .section {
-            background: #1f1f1f;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-        }
+    /* Page overlay UI */
+    header{
+      position:fixed; top:20px; left:20px; right:20px; z-index:5;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+    }
+    .brand{display:flex; align-items:center; gap:12px}
+    .logo{
+      width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#7b61ff);
+      box-shadow:0 6px 18px rgba(11,22,33,0.6); display:flex; align-items:center; justify-content:center; font-weight:800;
+      font-size:18px; color:#021019;
+    }
+    nav a{margin-left:18px; color:var(--muted); text-decoration:none; font-weight:600; font-size:14px}
+    nav a:hover{color:var(--accent)}
 
-        .section h2 {
-            color: #00dfd8;
-            margin-bottom: 10px;
-        }
+    /* Center hero box */
+    .hero{
+      position:relative; z-index:4; max-width:1100px; margin:0 auto; top:14vh; padding:28px; border-radius:16px;
+      backdrop-filter: blur(6px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      box-shadow: 0 10px 40px rgba(2,7,23,0.6);
+      display:flex; gap:20px; align-items:center;
+      margin-left:6vw; margin-right:6vw;
+    }
+    .intro{flex:1}
+    h1{font-size:clamp(28px,4.5vw,54px); margin:0; line-height:1.02}
+    .role{color:var(--accent); font-weight:700; margin-top:6px}
+    p.lead{color:var(--muted); margin-top:12px; font-size:clamp(14px,1.6vw,18px)}
 
-        /* Icon Row */
-        .icons {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }
-        .icon-card {
-            background: #262626;
-            padding: 20px;
-            border-radius: 12px;
-            width: 120px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: transform 0.2s ease;
-        }
-        .icon-card:hover {
-            transform: scale(1.1);
-        }
-        .icon-card img {
-            width: 50px;
-            height: 50px;
-        }
-        .icon-card span {
-            display: block;
-            margin-top: 10px;
-            font-size: 0.9rem;
-            color: #a8a8a8;
-        }
+    .cta{display:flex; gap:12px; margin-top:18px}
+    .btn{padding:10px 16px; border-radius:10px; text-decoration:none; font-weight:700; font-size:14px; display:inline-flex; align-items:center; gap:8px}
+    .btn-primary{background:linear-gradient(90deg,var(--accent),#7b61ff); color:#021019}
+    .btn-ghost{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--muted)}
 
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            margin-top: 40px;
-        }
-    </style>
+    /* Info card */
+    .card{min-width:300px; max-width:420px; padding:18px; border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03)}
+    .skills{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+    .chip{padding:6px 10px; border-radius:999px; background:var(--glass); font-weight:600; font-size:13px}
+
+    /* Footer */
+    footer{position:fixed; bottom:14px; left:20px; right:20px; z-index:5; display:flex; justify-content:space-between; color:var(--muted); font-size:13px}
+
+    /* Responsive tweaks */
+    @media (max-width:900px){
+      header{top:12px; left:12px; right:12px}
+      .hero{flex-direction:column; align-items:flex-start; padding:18px}
+      .card{width:100%}
+      footer{flex-direction:column; gap:8px; align-items:flex-start}
+    }
+
+    /* small helper for accessibility focus */
+    a:focus{outline:2px dashed var(--accent); outline-offset:3px}
+  </style>
 </head>
 <body>
 
-    <!-- HERO -->
-    <div class="hero">
-        <h1>Research Analyst</h1>
-        <h4>Version 2.0</h4>
-        <p>Automation | CI/CD | Cloud | Containers | Reliability Engineering</p>
+  <div id="globe-wrap"></div>
+
+  <header>
+    <div class="brand">
+      <div class="logo">JR</div>
+      <div>
+        <div style="font-weight:800">Jagathrajah</div>
+        <div style="font-size:12px;color:var(--muted)">Web3 · Security · Dev</div>
+      </div>
     </div>
 
-    <div class="container">
+    <nav>
+      <a href="#about">About</a>
+      <a href="#projects">Projects</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
 
-        <!-- About -->
-        <div class="section">
-            <h2>👋 About Me</h2>
-            <p>
-                I'm a DevOps engineer passionate about building scalable automation pipelines,  
-                containerized workloads, infrastructure as code, and cloud-native deployments.  
-                I enjoy turning manual, error-prone processes into efficient automated systems.
-            </p>
-        </div>
+  <main class="hero" role="main">
+    <section class="intro">
+      <h1>Hi — I'm <span style="color:var(--accent)">Jagathrajah</span>.<br><span class="role">I build secure Web3 systems & tools.</span></h1>
+      <p class="lead">Interactive portfolio with a live rotating 3D globe in the background. Click and drag to orbit, scroll to zoom. The entire layout is responsive for mobile and desktop.</p>
 
-        <!-- DevOps Stack -->
-        <div class="section">
-            <h2>🛠️ My DevOps Toolkit</h2>
-            <div class="icons">
-                <div class="icon-card">
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg">
-                    <span>Docker</span>
-                </div>
-                <div class="icon-card">
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kubernetes/kubernetes-plain.svg">
-                    <span>Kubernetes</span>
-                </div>
-                <div class="icon-card">
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg">
-                    <span>GitHub</span>
-                </div>
-                <div class="icon-card">
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg">
-                    <span>GCP</span>
-                </div>
-                <div class="icon-card">
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/ansible/ansible-original.svg">
-                    <span>Ansible</span>
-                </div>
-                <div class="icon-card">
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jenkins/jenkins-original.svg">
-                    <span>Jenkins</span>
-                </div>
-            </div>
-        </div>
+      <div class="cta">
+        <a class="btn btn-primary" href="#projects">View Projects →</a>
+        <a class="btn btn-ghost" href="#contact">Get in touch</a>
+      </div>
 
-        <!-- CI/CD Philosophy -->
-        <div class="section">
-            <h2>🔄 My CI/CD Philosophy</h2>
-            <p>
-                I believe CI/CD is not just tooling—it’s discipline.  
-                Every commit should move the system forward without fear of breaking production.  
-                My approach focuses on:
-            </p>
-            <ul>
-                <li>Clean, repeatable build pipelines</li>
-                <li>Automated testing gates</li>
-                <li>Immutable containerized deployments</li>
-                <li>Security + quality checks integrated early</li>
-                <li>Zero-downtime releases with Kubernetes</li>
-            </ul>
-        </div>
+      <div style="margin-top:16px; color:var(--muted); font-size:13px">Pro tip: drag the globe with your mouse or two-finger swipe on touch devices.</div>
+    </section>
 
-        <!-- Fun DevOps Vibe -->
-        <div class="section">
-            <h2>💻 My Workflow Vibe</h2>
-            <p>
-                Monitoring dashboards glowing at 2 AM.  
-                Pipelines running smoother than butter.  
-                Clusters scaling automatically.  
-                Logs flowing like poetry.  
-                That’s the energy I bring to DevOps.
-            </p>
-        </div>
-    </div>
+    <aside class="card">
+      <div style="font-weight:800; font-size:18px">Quick Skills</div>
+      <div class="skills">
+        <div class="chip">Blockchain</div>
+        <div class="chip">DNS Security</div>
+        <div class="chip">Malware Analysis</div>
+        <div class="chip">C++</div>
+        <div class="chip">Cloud</div>
+      </div>
 
-    <footer>
-        © 2025 DevOps Engineer — CI/CD | Cloud | Automation
-    </footer>
+      <div style="margin-top:14px; font-size:13px; color:var(--muted)">
+        Small bio: Fresh M.Tech grad focused on Web3 DNS & malware classification. Open to collaboration and talks.
+      </div>
+    </aside>
+  </main>
+
+  <!-- ABOUT SECTION -->
+  <section id="about" style="position:relative; z-index:4; margin:80px 6vw; padding:28px; border-radius:16px; backdrop-filter:blur(6px); background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); box-shadow:0 10px 40px rgba(2,7,23,0.6); color:white;">
+    <h2 style="font-size:clamp(24px,3vw,36px); font-weight:800; margin:0 0 12px 0;">About Me</h2>
+    <p style="font-size:clamp(14px,1.6vw,18px); color:var(--muted); line-height:1.6;">
+      I am <strong style="color:var(--accent)">Jagathrajah</strong>, a Research Analyst specializing in Threat Modelling, Threat Intelligence, and Malware Analysis.
+      I have completed my <strong>M.Tech in Information Security and Cyber Forensics</strong> and have authored
+      <strong>two IEEE publications</strong> in the domains of Web3 security and Malware Classification.
+    </p>
+    <p style="font-size:clamp(14px,1.6vw,18px); color:var(--muted); margin-top:12px; line-height:1.6;">
+      My interests revolve around advanced cybersecurity research, distributed systems, Web3 DNS security, and real-world cyber-attack prevention.
+    </p>
+  </section>
+
+  <footer>
+    <div>© <span id="year"></span> Jagathrajah</div>
+    <div>Built with three.js • Responsive • Accessible</div>
+  </footer>
+
+  <!-- External JS libraries from CDNs (pulled by URL) -->
+  <!-- three.js core -->
+  <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+  <!-- OrbitControls for interaction -->
+  <script src="https://unpkg.com/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- GSAP for subtle UI animations -->
+  <script src="https://unpkg.com/gsap@3.12.2/dist/gsap.min.js"></script>
+
+  <script>
+    // small helper
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Scene setup
+    const container = document.getElementById('globe-wrap');
+    const scene = new THREE.Scene();
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    container.appendChild(renderer.domElement);
+
+    // Camera
+    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 2000);
+    camera.position.set(0, 0, 4.5);
+
+    // Lights
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x080820, 0.8);
+    scene.add(hemi);
+    const dir = new THREE.DirectionalLight(0xffffff, 0.6);
+    dir.position.set(5, 3, 5);
+    scene.add(dir);
+
+    // Loaders and textures
+    const loader = new THREE.TextureLoader();
+    // public domain texture hosted on threejs examples
+    const earthTextureURL = 'https://threejs.org/examples/textures/earth_atmos_2048.jpg';
+    const earthBumpURL = 'https://threejs.org/examples/textures/earth_bump_1024.jpg';
+
+    const sphereGroup = new THREE.Group();
+    scene.add(sphereGroup);
+
+    loader.load(earthTextureURL, (map) => {
+      loader.load(earthBumpURL, (bump) => {
+        const geometry = new THREE.SphereGeometry(1.45, 64, 64);
+        const material = new THREE.MeshStandardMaterial({
+          map: map,
+          bumpMap: bump,
+          bumpScale: 0.02,
+          metalness: 0.05,
+          roughness: 0.9,
+        });
+        const earth = new THREE.Mesh(geometry, material);
+        sphereGroup.add(earth);
+
+        // subtle atmospheric glow using another sphere
+        const atmosphereMat = new THREE.MeshBasicMaterial({
+          color: 0x93d7ff,
+          side: THREE.BackSide,
+          transparent: true,
+          opacity: 0.08,
+        });
+        const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(1.47, 64, 64), atmosphereMat);
+        sphereGroup.add(atmosphere);
+
+        // add stars as background points
+        const starsGeometry = new THREE.BufferGeometry();
+        const starCount = 2000;
+        const positions = new Float32Array(starCount * 3);
+        for (let i = 0; i < starCount * 3; i++) positions[i] = (Math.random() - 0.5) * 200;
+        starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const starsMaterial = new THREE.PointsMaterial({ size: 0.6, sizeAttenuation: true });
+        const starField = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(starField);
+
+        animate();
+      });
+    });
+
+    // Controls
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.enablePan = false;
+    controls.minDistance = 2.6;
+    controls.maxDistance = 8;
+    controls.rotateSpeed = 0.4;
+
+    // Responsive resize
+    function onWindowResize(){
+      const w = container.clientWidth, h = container.clientHeight;
+      camera.aspect = w/h; camera.updateProjectionMatrix();
+      renderer.setSize(w,h);
+    }
+    window.addEventListener('resize', onWindowResize, {passive:true});
+
+    // Animation loop: continuous slow rotation + subtle bobbing
+    const clock = new THREE.Clock();
+    function animate(){
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+
+      // slow auto-rotate of the group
+      sphereGroup.rotation.y += 0.0025; // change to 0.005 for faster spin
+      sphereGroup.rotation.x = Math.sin(t * 0.12) * 0.02;
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // simple parallax on mouse move for depth effect (non-invasive)
+    document.addEventListener('pointermove', (e) => {
+      const x = (e.clientX / window.innerWidth) * 2 - 1;
+      const y = (e.clientY / window.innerHeight) * 2 - 1;
+      gsap.to(sphereGroup.rotation, { x: y * 0.05, y: x * 0.15, duration: 1.6, ease: 'power2.out' });
+    }, {passive:true});
+
+    // small entrance animation for UI
+    gsap.from('.hero', { y:40, opacity:0, duration:1.2, delay:0.2, ease:'power3.out'});
+    gsap.from('header', { y:-20, opacity:0, duration:1, delay:0.05 });
+
+    // Ensure canvas fills available area and responds to mobile height changes
+    function setContainerHeight(){
+      container.style.height = window.innerHeight + 'px';
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      camera.updateProjectionMatrix();
+    }
+    setContainerHeight();
+    window.addEventListener('resize', setContainerHeight, {passive:true});
+
+    // Accessibility: allow keyboard rotate via arrow keys
+    window.addEventListener('keydown', (ev) => {
+      const step = 0.08;
+      if(ev.key === 'ArrowLeft') gsap.to(sphereGroup.rotation, { y: sphereGroup.rotation.y - step, duration:0.6});
+      if(ev.key === 'ArrowRight') gsap.to(sphereGroup.rotation, { y: sphereGroup.rotation.y + step, duration:0.6});
+    });
+
+  </script>
 
 </body>
 </html>
