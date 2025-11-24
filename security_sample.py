@@ -45,4 +45,4 @@ def login():
         return "Invalid login"
 
 # ❌ Debug mode exposes server info
-app.run(debug=True)
+app.run(debug=False)
