@@ -1,57 +1,50 @@
-name: Build
+name: Build - Python
 
 on:
   push:
-    branches:
-      - master   # change to 'main' if your repo's default branch is main
+    branches: [ master ]
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
   sonarqube:
-    name: SonarQube
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde84b2ab8967f23c3f437ce868e5b46254c2
         with:
-          fetch-depth: 0  # full clone for accurate analysis
+          fetch-depth: 0
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          node-version: 18
+          python-version: '3.10'
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests with coverage
-        run: npm test -- --coverage
-
-      - name: Show coverage files (debug)
         run: |
-          echo "PWD: $(pwd)"
+          python -m pip install --upgrade pip
+          pip install pytest coverage
+
+      - name: Run tests and generate coverage (pytest)
+        run: |
+          # run pytest (add -q if you prefer)
+          coverage run -m pytest || true
+          coverage xml -i  # produce coverage.xml
+
+      - name: Show Python coverage (debug)
+        run: |
           ls -la
-          echo "Coverage directory listing:"
-          ls -la coverage || true
-          if [ -f coverage/lcov.info ]; then
-            echo "---- coverage/lcov.info (first 60 lines) ----"
-            head -n 60 coverage/lcov.info
-            echo "---- end ----"
-          else
-            echo "coverage/lcov.info NOT FOUND"
-          fi
+          if [ -f coverage.xml ]; then head -n 60 coverage.xml; else echo "coverage.xml NOT FOUND"; fi
 
       - name: Setup sonar-scanner
-  uses: warchant/setup-sonar-scanner@1d93bf6a0eef894cc38a326f6b9755d5aaaeae62
-  with:
-    version: 'latest'
+        uses: warchant/setup-sonar-scanner@1d93bf6a0eef894cc38a326f6b9755d5aaaeae62
+        with:
+          version: 'latest'
 
-
-      - name: Run sonar-scanner (explicit)
+      - name: Run sonar-scanner (explicit) for Python
         env:
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}   # required
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}         # required
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           sonar-scanner \
             -Dsonar.host.url="${SONAR_HOST_URL}" \
@@ -59,4 +52,4 @@ jobs:
             -Dsonar.projectKey="un1v3rs2lk1ng" \
             -Dsonar.projectName="un1v3rs2lk1ng" \
             -Dsonar.sources=. \
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.python.coverage.reportPaths=coverage.xml
