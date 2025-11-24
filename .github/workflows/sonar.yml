@@ -1,4 +1,4 @@
-name: SonarQube Scan
+name: SonarCloud Scan
 
 on:
   push:
@@ -21,11 +21,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install flask || true
+          pip install -r requirements.txt || true
 
-      - name: Run SonarQube Scan
+      - name: Run SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@v2
         with:
           args: >
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.projectKey=devops
+            -Dsonar.organization=Un1v3rs@LK1ng
+            -Dsonar.sources=.
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
