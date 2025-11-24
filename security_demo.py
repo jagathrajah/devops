@@ -1,5 +1,6 @@
 """
 Intentionally insecure Python code for SonarQube pipeline learning.
+(This version fixes ONLY the SQL injection issue as requested.)
 """
 
 import os
@@ -9,24 +10,30 @@ import sqlite3
 
 app = Flask(__name__)
 
-# ❌ Hardcoded secret (SonarQube flags)
+# ❌ Hardcoded secret (still intentionally insecure for learning)
 SECRET_KEY = "SuperSecretKey123"
 
-# ❌ Weak hashing (SonarQube flags)
+# ❌ Weak hashing (kept intentionally)
 def hash_password(password):
     return hashlib.md5(password.encode()).hexdigest()
 
-# ❌ No input validation + SQL injection (SonarQube flags)
+
+# ✅ FIXED: No longer constructs SQL directly using f‑string
+# Parameterized query prevents SQL injection
 def get_user(username):
     conn = sqlite3.connect("users.db")
     cur = conn.cursor()
-    query = f"SELECT * FROM users WHERE username = '{username}';"
-    cur.execute(query)
+
+    # FIX: parameterized query instead of f-string
+    query = "SELECT * FROM users WHERE username = ?;"
+    cur.execute(query, (username,))
+
     result = cur.fetchone()
     conn.close()
     return result
 
-# ❌ No rate limiting + debug mode (security issue)
+
+# ❌ Still intentionally insecure (no rate limiting), but works for testing
 @app.route("/login", methods=["POST"])
 def login():
     username = request.form.get("username")
@@ -39,6 +46,7 @@ def login():
         return "Login successful"
     return "Login failed"
 
-# ❌ Debug mode exposes internals (SonarQube flags)
+
+# ❌ Debug disabled now for safety
 if __name__ == "__main__":
     app.run(debug=False)
