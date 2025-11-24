@@ -1,0 +1,25 @@
+name: Python Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pip install pytest coverage flask
+      - name: Run tests with coverage
+        run: |
+          coverage run -m pytest
+          coverage xml  # Generates coverage.xml
+      - name: Upload coverage for SonarQube
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage.xml
