@@ -21,17 +21,24 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install flask
+          pip install flask || true
 
-      - name: SonarQube Scan
+      - name: Download SonarScanner
+        run: |
+          echo "Downloading SonarScanner..."
+          curl -sSL https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-6.0.0.4432-linux.zip -o scanner.zip
+          unzip scanner.zip
+          mv sonar-scanner-* sonar-scanner
+
+      - name: Run SonarQube Scan
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          curl -sSL https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-5.0.1.3006-linux.zip -o scanner.zip
-          unzip scanner.zip
-          mv sonar-scanner-* sonar-scanner
+          echo "Running SonarScanner..."
           sonar-scanner/bin/sonar-scanner \
             -Dsonar.projectBaseDir=. \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.host.url=$SONAR_HOST_URL
+            -Dsonar.projectKey=security-demo \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_TOKEN
