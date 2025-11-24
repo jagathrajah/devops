@@ -1,19 +1,61 @@
 name: Build
+
 on:
   push:
     branches:
-      - master
+      - master   # change to 'main' if your repo's default branch is main
   pull_request:
     types: [opened, synchronize, reopened]
+
 jobs:
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6
+          fetch-depth: 0  # full clone for accurate analysis
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage
+
+      - name: Show coverage files (debug)
+        run: |
+          echo "PWD: $(pwd)"
+          ls -la
+          echo "Coverage directory listing:"
+          ls -la coverage || true
+          if [ -f coverage/lcov.info ]; then
+            echo "---- coverage/lcov.info (first 60 lines) ----"
+            head -n 60 coverage/lcov.info
+            echo "---- end ----"
+          else
+            echo "coverage/lcov.info NOT FOUND"
+          fi
+
+      - name: Setup sonar-scanner
+        uses: warchant/setup-sonar-scanner@v1
+        with:
+          version: 'latest'
+
+      - name: Run sonar-scanner (explicit)
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}   # required
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}         # required
+        run: |
+          sonar-scanner \
+            -Dsonar.host.url="${SONAR_HOST_URL}" \
+            -Dsonar.login="${SONAR_TOKEN}" \
+            -Dsonar.projectKey="un1v3rs2lk1ng" \
+            -Dsonar.projectName="un1v3rs2lk1ng" \
+            -Dsonar.sources=. \
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
