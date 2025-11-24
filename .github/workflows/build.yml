@@ -43,9 +43,10 @@ jobs:
           fi
 
       - name: Setup sonar-scanner
-        uses: warchant/setup-sonar-scanner@v1
-        with:
-          version: 'latest'
+  uses: warchant/setup-sonar-scanner@1d93bf6a0eef894cc38a326f6b9755d5aaaeae62
+  with:
+    version: 'latest'
+
 
       - name: Run sonar-scanner (explicit)
         env:
